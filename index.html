@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Birthday Cake 🎂</title>
+  <link rel="stylesheet" href="./css/style.css" />
+  <link rel="stylesheet" href="./css/animation.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.3/p5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+<div class="app">
+
+  <!-- ── LEFT PANEL (hidden in view mode) ── -->
+  <aside class="panel" id="creator-panel">
+    <h1>🎂 Birthday Cake</h1>
+
+    <label class="field-label">Name on cake
+      <input type="text" id="input-name" value="Your Name" maxlength="20" />
+    </label>
+
+    <div class="field-label">Candle style
+      <div class="toggle-group">
+        <button class="toggle-btn active" id="btn-mode-stick">🕯 Stick</button>
+        <button class="toggle-btn"        id="btn-mode-number">🔢 Number</button>
+      </div>
+    </div>
+
+    <div id="stick-controls">
+      <label class="field-label">Number of candles
+        <div class="candle-row">
+          <input type="range" id="input-candles" min="1" max="12" value="5" />
+          <span id="candle-count-display">5</span>
+        </div>
+      </label>
+    </div>
+
+    <div id="number-controls" class="hidden">
+      <label class="field-label">What number to show as candles?
+        <input type="text" id="input-age" value="21" maxlength="3" placeholder="e.g. 21" />
+        <span class="field-hint">Up to 3 digits (e.g. age, year, any number)</span>
+      </label>
+    </div>
+
+    <label class="field-label">Cake color
+      <input type="color" id="input-cake-color" value="#F472B6" />
+    </label>
+
+    <label class="field-label">Frosting color
+      <input type="color" id="input-frosting-color" value="#FBCFE8" />
+    </label>
+
+    <label class="field-label">Wish message
+      <textarea id="input-wish" rows="3" maxlength="120">Happy Birthday! 🎂</textarea>
+    </label>
+
+    <hr class="divider" />
+
+    <button id="btn-blow" class="btn-primary" disabled>🎤 Ready to Blow?</button>
+    <p id="mic-status" class="status-text"></p>
+
+    <hr class="divider" />
+
+    <button id="btn-share" class="btn-share">🔗 Copy Share Link</button>
+    <p id="share-status" class="status-text"></p>
+  </aside>
+
+  <!-- ── RIGHT: CANVAS AREA ── -->
+  <main class="canvas-area">
+    <div id="view-only-banner" class="view-only-banner hidden">
+      <span>🎂 Someone baked this cake just for you!</span>
+      <a href="./index.html" class="make-own-link">Make your own →</a>
+    </div>
+
+    <div id="cake-canvas"></div>
+
+    <div id="view-controls" class="view-blow-area hidden"></div>
+
+    <div id="wish-card" class="wish-card hidden">
+      <p id="wish-text"></p>
+    </div>
+  </main>
+
+</div>
+
+<script type="module" src="./js/state.js"></script>
+<script type="module" src="./js/candles.js"></script>
+<script type="module" src="./js/cake.js"></script>
+<script type="module" src="./js/audio.js"></script>
+<script type="module" src="./js/confetti.js"></script>
+<script type="module" src="./js/share.js"></script>
+<script type="module" src="./js/ui.js"></script>
+</body>
+</html>

@@ -1,0 +1,265 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: system-ui, sans-serif;
+  background: #0f0f1a;
+  color: #f0f0f0;
+  min-height: 100vh;
+}
+
+.app {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ── Panel ── */
+.panel {
+  width: 300px;
+  min-width: 260px;
+  background: #1a1a2e;
+  padding: 1.5rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border-right: 1px solid #2a2a3e;
+  overflow-y: auto;
+}
+
+.panel h1 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #e879f9;
+}
+
+.field-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  color: #a0a0c0;
+}
+
+.field-hint {
+  font-size: 0.75rem;
+  color: #5a5a7a;
+}
+
+input[type="text"],
+input[type="number"],
+textarea {
+  background: #0f0f1a;
+  border: 1px solid #2a2a3e;
+  border-radius: 8px;
+  color: #f0f0f0;
+  padding: 0.45rem 0.7rem;
+  font-size: 0.92rem;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.2s;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+textarea:focus {
+  outline: none;
+  border-color: #e879f9;
+}
+
+input[type="color"] {
+  width: 44px;
+  height: 34px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: none;
+  padding: 0;
+}
+
+.candle-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+input[type="range"] {
+  flex: 1;
+  accent-color: #e879f9;
+}
+
+#candle-count-display {
+  font-weight: 700;
+  color: #e879f9;
+  min-width: 20px;
+  text-align: right;
+}
+
+/* ── Candle mode toggle ── */
+.toggle-group {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.1rem;
+}
+
+.toggle-btn {
+  flex: 1;
+  padding: 0.4rem 0.5rem;
+  background: #0f0f1a;
+  border: 1px solid #2a2a3e;
+  border-radius: 8px;
+  color: #a0a0c0;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.toggle-btn.active {
+  border-color: #e879f9;
+  color: #e879f9;
+  background: #1f0a2e;
+}
+
+/* ── Buttons ── */
+.btn-primary {
+  padding: 0.7rem 1rem;
+  background: #e879f9;
+  color: #0f0f1a;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.btn-primary:hover:not(:disabled) { background: #d946ef; transform: scale(1.02); }
+.btn-primary:active:not(:disabled) { transform: scale(0.98); }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-share {
+  padding: 0.6rem 1rem;
+  background: transparent;
+  color: #e879f9;
+  border: 1.5px solid #e879f9;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.btn-share:hover { background: #e879f9; color: #0f0f1a; }
+
+.divider {
+  border: none;
+  border-top: 1px solid #2a2a3e;
+}
+
+.status-text {
+  font-size: 0.78rem;
+  color: #6b6b9a;
+  text-align: center;
+  min-height: 1rem;
+}
+
+/* ── Canvas area ── */
+.canvas-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 2rem;
+  gap: 1rem;
+}
+
+#cake-canvas canvas { border-radius: 16px; }
+
+/* ── View-only banner ── */
+.view-only-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: #1a1a2e;
+  border: 1px solid #e879f9;
+  border-radius: 12px;
+  padding: 0.7rem 1.2rem;
+  font-size: 0.88rem;
+  width: 100%;
+  max-width: 540px;
+}
+
+.make-own-link {
+  color: #e879f9;
+  text-decoration: none;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.make-own-link:hover { text-decoration: underline; }
+
+/* ── View blow area ── */
+.view-blow-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+/* ── Wish card ── */
+.wish-card {
+  background: #1a1a2e;
+  border: 1px solid #e879f9;
+  border-radius: 16px;
+  padding: 1.2rem 2rem;
+  text-align: center;
+  max-width: 440px;
+  width: 90%;
+}
+
+.wish-card p {
+  font-size: 1.05rem;
+  color: #f0f0f0;
+  line-height: 1.6;
+}
+
+.hidden { display: none !important; }
+
+/* ── Mobile ── */
+@media (max-width: 680px) {
+  .app {
+    flex-direction: column;
+  }
+
+  /* Canvas first, form below */
+  .canvas-area {
+    order: -1;
+    padding: 1rem 0.75rem 0.5rem;
+    justify-content: flex-start;
+  }
+
+  /* Canvas fills width on mobile */
+  #cake-canvas {
+    width: 100%;
+  }
+  #cake-canvas canvas {
+    width: 100% !important;
+    height: auto !important;
+    border-radius: 12px;
+  }
+
+  .panel {
+    width: 100%;
+    border-right: none;
+    border-top: 1px solid #2a2a3e;
+    padding: 1rem;
+    /* Limit height so user can scroll the form without losing the cake */
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+
+  .wish-card {
+    margin: 0 0.5rem;
+  }
+}
