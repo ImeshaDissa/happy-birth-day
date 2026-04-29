@@ -1,3 +1,4 @@
+// share.js – URL encode/decode cake state
 import { state } from './state.js';
 
 const SHARE_KEYS = ['name', 'candleCount', 'cakeColor', 'frostingColor', 'wishMessage', 'candleMode', 'ageNumber'];
@@ -6,8 +7,8 @@ export function generateShareURL() {
   const payload = {};
   SHARE_KEYS.forEach(k => payload[k] = state[k]);
   const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
-  const url = new URL(window.location.href);
-  url.search = '';
+  const url     = new URL(window.location.href);
+  url.search    = '';
   url.searchParams.set('cake', encoded);
   return url.toString();
 }

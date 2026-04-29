@@ -3,93 +3,188 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Birthday Cake 🎂</title>
+  <title>🎂 Birthday Cake Designer</title>
+  <meta name="description" content="Design a beautiful birthday cake, add a personal message, and send it as a gift!" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./css/style.css" />
   <link rel="stylesheet" href="./css/animation.css" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.3/p5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FontLoader.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 </head>
 <body>
-<div class="app">
 
-  <!-- ── LEFT PANEL (hidden in view mode) ── -->
-  <aside class="panel" id="creator-panel">
-    <h1>🎂 Birthday Cake</h1>
+<!-- ══════════════════════════════════════════════
+     STEP 1 – DESIGN FORM
+════════════════════════════════════════════════ -->
+<div id="screen-design" class="screen active">
+  <div class="design-layout">
 
-    <label class="field-label">Name on cake
-      <input type="text" id="input-name" value="Your Name" maxlength="20" />
-    </label>
+    <!-- Left: 3-D cake preview -->
+    <div class="design-preview-col">
+      <div class="preview-label">Live Preview</div>
+      <div id="preview-canvas"></div>
+    </div>
 
-    <div class="field-label">Candle style
-      <div class="toggle-group">
-        <button class="toggle-btn active" id="btn-mode-stick">🕯 Stick</button>
-        <button class="toggle-btn"        id="btn-mode-number">🔢 Number</button>
+    <!-- Right: form -->
+    <aside class="design-form-col">
+      <div class="form-header">
+        <div class="form-logo">🎂</div>
+        <h1>Birthday Cake <span class="gradient-text">Designer</span></h1>
+        <p class="form-sub">Craft a personalised birthday cake &amp; send it as a gift</p>
+      </div>
+
+      <div class="form-steps">
+
+        <!-- Step badge -->
+        <div class="step-badge"><span>1</span> Personalise</div>
+
+        <div class="field-group">
+          <label class="field-label" for="input-name">Name on cake</label>
+          <input type="text" id="input-name" value="Your Name" maxlength="20" placeholder="e.g. Sarah" />
+        </div>
+
+        <div class="step-badge"><span>2</span> Candles</div>
+
+        <div class="field-group">
+          <label class="field-label">Candle style</label>
+          <div class="toggle-group">
+            <button class="toggle-btn active" id="btn-mode-stick">🕯 Stick</button>
+            <button class="toggle-btn"        id="btn-mode-number">🔢 Number</button>
+          </div>
+        </div>
+
+        <div id="stick-controls" class="field-group">
+          <label class="field-label">Number of candles</label>
+          <div class="candle-row">
+            <input type="range" id="input-candles" min="1" max="12" value="5" />
+            <span id="candle-count-display">5</span>
+          </div>
+        </div>
+
+        <div id="number-controls" class="field-group hidden">
+          <label class="field-label" for="input-age">Number candles (age / year)</label>
+          <input type="text" id="input-age" value="21" maxlength="3" placeholder="e.g. 21" />
+          <span class="field-hint">Up to 3 digits shown as shaped candles</span>
+        </div>
+
+        <div class="step-badge"><span>3</span> Appearance</div>
+
+        <div class="color-row">
+          <div class="field-group">
+            <label class="field-label" for="input-cake-color">Cake colour</label>
+            <div class="color-picker-wrap">
+              <input type="color" id="input-cake-color" value="#F472B6" />
+              <span id="cake-color-swatch" class="color-swatch" style="background:#F472B6"></span>
+            </div>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="input-frosting-color">Frosting colour</label>
+            <div class="color-picker-wrap">
+              <input type="color" id="input-frosting-color" value="#FBCFE8" />
+              <span id="frosting-color-swatch" class="color-swatch" style="background:#FBCFE8"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-badge"><span>4</span> Message Card</div>
+
+        <div class="field-group">
+          <label class="field-label" for="input-wish">Wish message</label>
+          <textarea id="input-wish" rows="3" maxlength="160" placeholder="Write your birthday message…">Happy Birthday! 🎂 Wishing you a wonderful day filled with joy!</textarea>
+        </div>
+
+        <button id="btn-finalize" class="btn-primary btn-large">
+          🎁 Finalize &amp; Send Gift
+        </button>
+
+      </div><!-- /form-steps -->
+    </aside>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     STEP 2 – SEND / SHARE
+════════════════════════════════════════════════ -->
+<div id="screen-send" class="screen hidden">
+  <div class="send-layout">
+    <div class="send-card">
+      <div class="send-icon">🎁</div>
+      <h2>Your cake is ready!</h2>
+      <p class="send-sub">Share the link below with the birthday person. They'll get a special gift-unwrapping experience!</p>
+
+      <div class="share-url-box">
+        <span id="share-url-text" class="share-url-text"></span>
+        <button id="btn-copy-link" class="btn-icon" title="Copy link">📋</button>
+      </div>
+      <p id="share-status" class="status-text"></p>
+
+      <div class="send-actions">
+        <button id="btn-preview-gift" class="btn-primary">👁 Preview as receiver</button>
+        <button id="btn-edit-back"    class="btn-outline">← Edit cake</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     STEP 3 – GIFT UNWRAP (receiver view)
+════════════════════════════════════════════════ -->
+<div id="screen-gift" class="screen hidden">
+  <div class="gift-scene">
+
+    <!-- Wrapped gift -->
+    <div id="gift-wrap" class="gift-wrap-container">
+      <div class="gift-box">
+        <div class="gift-lid">
+          <div class="lid-ribbon-h"></div>
+          <div class="lid-ribbon-v"></div>
+          <div class="bow-left"></div>
+          <div class="bow-right"></div>
+        </div>
+        <div class="gift-body">
+          <div class="body-ribbon-h"></div>
+          <div class="body-ribbon-v"></div>
+          <div class="gift-tag">
+            <div class="gift-tag-text">🎂 A special birthday surprise just for you!</div>
+          </div>
+        </div>
+      </div>
+      <button id="btn-unwrap" class="btn-primary btn-large btn-glow">
+        🎁 Unwrap your gift!
+      </button>
+    </div>
+
+    <!-- Cake reveal (hidden until unwrap) -->
+    <div id="cake-reveal" class="cake-reveal hidden">
+      <div class="receiver-banner">
+        <span>🎂 Someone baked this cake just for you!</span>
+        <a href="./index.html" class="make-own-link">Make your own →</a>
+      </div>
+
+      <div id="cake-canvas"></div>
+
+      <div id="blow-controls" class="blow-controls hidden">
+        <p class="blow-hint">🎤 Blow into your microphone to extinguish the candles!</p>
+        <button id="btn-blow" class="btn-primary btn-large">🎤 Ready to Blow?</button>
+        <p id="mic-status" class="status-text"></p>
+      </div>
+
+      <!-- Message card (shown after all candles blown) -->
+      <div id="wish-card" class="wish-card hidden">
+        <div class="wish-card-inner">
+          <div class="wish-card-header">💌</div>
+          <p id="wish-text"></p>
+        </div>
       </div>
     </div>
 
-    <div id="stick-controls">
-      <label class="field-label">Number of candles
-        <div class="candle-row">
-          <input type="range" id="input-candles" min="1" max="12" value="5" />
-          <span id="candle-count-display">5</span>
-        </div>
-      </label>
-    </div>
-
-    <div id="number-controls" class="hidden">
-      <label class="field-label">What number to show as candles?
-        <input type="text" id="input-age" value="21" maxlength="3" placeholder="e.g. 21" />
-        <span class="field-hint">Up to 3 digits (e.g. age, year, any number)</span>
-      </label>
-    </div>
-
-    <label class="field-label">Cake color
-      <input type="color" id="input-cake-color" value="#F472B6" />
-    </label>
-
-    <label class="field-label">Frosting color
-      <input type="color" id="input-frosting-color" value="#FBCFE8" />
-    </label>
-
-    <label class="field-label">Wish message
-      <textarea id="input-wish" rows="3" maxlength="120">Happy Birthday! 🎂</textarea>
-    </label>
-
-    <hr class="divider" />
-
-    <button id="btn-blow" class="btn-primary" disabled>🎤 Ready to Blow?</button>
-    <p id="mic-status" class="status-text"></p>
-
-    <hr class="divider" />
-
-    <button id="btn-share" class="btn-share">🔗 Copy Share Link</button>
-    <p id="share-status" class="status-text"></p>
-  </aside>
-
-  <!-- ── RIGHT: CANVAS AREA ── -->
-  <main class="canvas-area">
-    <div id="view-only-banner" class="view-only-banner hidden">
-      <span>🎂 Someone baked this cake just for you!</span>
-      <a href="./index.html" class="make-own-link">Make your own →</a>
-    </div>
-
-    <div id="cake-canvas"></div>
-
-    <div id="view-controls" class="view-blow-area hidden"></div>
-
-    <div id="wish-card" class="wish-card hidden">
-      <p id="wish-text"></p>
-    </div>
-  </main>
-
+  </div>
 </div>
 
-<script type="module" src="./js/state.js"></script>
-<script type="module" src="./js/candles.js"></script>
-<script type="module" src="./js/cake.js"></script>
-<script type="module" src="./js/audio.js"></script>
-<script type="module" src="./js/confetti.js"></script>
-<script type="module" src="./js/share.js"></script>
 <script type="module" src="./js/ui.js"></script>
 </body>
 </html>

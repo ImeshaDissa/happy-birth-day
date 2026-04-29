@@ -1,21 +1,66 @@
-/*
-    flame flicker, confetti fade
-*/
+/* ─────────────────────────────────────────────
+   Keyframe animations
+───────────────────────────────────────────── */
+
 /* Wish card fade-in */
 @keyframes fadeSlideUp {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
 .wish-card.visible {
-  animation: fadeSlideUp 0.6s ease forwards;
+  animation: fadeSlideUp 0.7s cubic-bezier(.22,1,.36,1) forwards;
+}
+
+/* Floating animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
+}
+
+/* Glow pulse on unwrap button */
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 30px rgba(232,121,249,.4); }
+  50%       { box-shadow: 0 0 60px rgba(232,121,249,.75); }
+}
+
+/* Screen slide-in for gift reveal */
+@keyframes floatIn {
+  from { opacity: 0; transform: scale(.88) translateY(30px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 /* Mic pulse while listening */
 @keyframes micPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(232,121,249,0.45); }
-  50%       { box-shadow: 0 0 0 10px rgba(232,121,249,0); }
+  0%, 100% { box-shadow: 0 4px 20px rgba(232,121,249,.3), 0 0 0 0 rgba(232,121,249,.45); }
+  50%       { box-shadow: 0 4px 20px rgba(232,121,249,.3), 0 0 0 14px rgba(232,121,249,0); }
 }
+
 .btn-primary.listening {
   animation: micPulse 1.2s ease infinite;
-  background: #a855f7;
+  background: linear-gradient(135deg, #a855f7, #7c3aed);
+}
+
+/* Candle blow out flash */
+@keyframes blowFlash {
+  0%   { opacity: 1; transform: scale(1); }
+  40%  { opacity: .7; transform: scale(1.4); }
+  100% { opacity: 0; transform: scale(0); }
+}
+
+/* Gift lid lift on reveal */
+@keyframes lidLift {
+  0%   { transform: translateY(0) rotate(0deg); }
+  100% { transform: translateY(-120px) rotate(-15deg); }
+}
+
+.gift-lid.lifting {
+  animation: lidLift .55s cubic-bezier(.34,1.56,.64,1) forwards;
+}
+
+/* Confetti burst helper */
+@keyframes confettiBurst {
+  0%   { opacity: 1; transform: scale(0); }
+  60%  { opacity: 1; transform: scale(1.2); }
+  100% { opacity: 0; transform: scale(1.5); }
 }
