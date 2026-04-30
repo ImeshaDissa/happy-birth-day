@@ -3,188 +3,367 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>🎂 Birthday Cake Designer</title>
-  <meta name="description" content="Design a beautiful birthday cake, add a personal message, and send it as a gift!" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <title>Birthday Cake 🎂</title>
   <link rel="stylesheet" href="./css/style.css" />
-  <link rel="stylesheet" href="./css/animation.css" />
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FontLoader.js"></script>
+
+  <!-- Three.js r128 from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <!-- OrbitControls — must load after Three.js -->
+  <script>
+    // Inject OrbitControls into THREE namespace from CDN module
+    // We use a small inline adapter since r128 CDN doesn't bundle OrbitControls
+  </script>
+
+  <!-- canvas-confetti -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 </head>
 <body>
 
-<!-- ══════════════════════════════════════════════
-     STEP 1 – DESIGN FORM
-════════════════════════════════════════════════ -->
-<div id="screen-design" class="screen active">
-  <div class="design-layout">
+<!-- ── Stars background ── -->
+<div class="stars" id="stars-bg"></div>
 
-    <!-- Left: 3-D cake preview -->
-    <div class="design-preview-col">
-      <div class="preview-label">Live Preview</div>
-      <div id="preview-canvas"></div>
-    </div>
-
-    <!-- Right: form -->
-    <aside class="design-form-col">
-      <div class="form-header">
-        <div class="form-logo">🎂</div>
-        <h1>Birthday Cake <span class="gradient-text">Designer</span></h1>
-        <p class="form-sub">Craft a personalised birthday cake &amp; send it as a gift</p>
-      </div>
-
-      <div class="form-steps">
-
-        <!-- Step badge -->
-        <div class="step-badge"><span>1</span> Personalise</div>
-
-        <div class="field-group">
-          <label class="field-label" for="input-name">Name on cake</label>
-          <input type="text" id="input-name" value="Your Name" maxlength="20" placeholder="e.g. Sarah" />
-        </div>
-
-        <div class="step-badge"><span>2</span> Candles</div>
-
-        <div class="field-group">
-          <label class="field-label">Candle style</label>
-          <div class="toggle-group">
-            <button class="toggle-btn active" id="btn-mode-stick">🕯 Stick</button>
-            <button class="toggle-btn"        id="btn-mode-number">🔢 Number</button>
-          </div>
-        </div>
-
-        <div id="stick-controls" class="field-group">
-          <label class="field-label">Number of candles</label>
-          <div class="candle-row">
-            <input type="range" id="input-candles" min="1" max="12" value="5" />
-            <span id="candle-count-display">5</span>
-          </div>
-        </div>
-
-        <div id="number-controls" class="field-group hidden">
-          <label class="field-label" for="input-age">Number candles (age / year)</label>
-          <input type="text" id="input-age" value="21" maxlength="3" placeholder="e.g. 21" />
-          <span class="field-hint">Up to 3 digits shown as shaped candles</span>
-        </div>
-
-        <div class="step-badge"><span>3</span> Appearance</div>
-
-        <div class="color-row">
-          <div class="field-group">
-            <label class="field-label" for="input-cake-color">Cake colour</label>
-            <div class="color-picker-wrap">
-              <input type="color" id="input-cake-color" value="#F472B6" />
-              <span id="cake-color-swatch" class="color-swatch" style="background:#F472B6"></span>
-            </div>
-          </div>
-          <div class="field-group">
-            <label class="field-label" for="input-frosting-color">Frosting colour</label>
-            <div class="color-picker-wrap">
-              <input type="color" id="input-frosting-color" value="#FBCFE8" />
-              <span id="frosting-color-swatch" class="color-swatch" style="background:#FBCFE8"></span>
-            </div>
-          </div>
-        </div>
-
-        <div class="step-badge"><span>4</span> Message Card</div>
-
-        <div class="field-group">
-          <label class="field-label" for="input-wish">Wish message</label>
-          <textarea id="input-wish" rows="3" maxlength="160" placeholder="Write your birthday message…">Happy Birthday! 🎂 Wishing you a wonderful day filled with joy!</textarea>
-        </div>
-
-        <button id="btn-finalize" class="btn-primary btn-large">
-          🎁 Finalize &amp; Send Gift
-        </button>
-
-      </div><!-- /form-steps -->
-    </aside>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════════
-     STEP 2 – SEND / SHARE
-════════════════════════════════════════════════ -->
-<div id="screen-send" class="screen hidden">
-  <div class="send-layout">
-    <div class="send-card">
-      <div class="send-icon">🎁</div>
-      <h2>Your cake is ready!</h2>
-      <p class="send-sub">Share the link below with the birthday person. They'll get a special gift-unwrapping experience!</p>
-
-      <div class="share-url-box">
-        <span id="share-url-text" class="share-url-text"></span>
-        <button id="btn-copy-link" class="btn-icon" title="Copy link">📋</button>
-      </div>
-      <p id="share-status" class="status-text"></p>
-
-      <div class="send-actions">
-        <button id="btn-preview-gift" class="btn-primary">👁 Preview as receiver</button>
-        <button id="btn-edit-back"    class="btn-outline">← Edit cake</button>
+<!-- ── Gift intro overlay ── -->
+<div id="gift-overlay">
+  <div id="gift-box">
+    <div class="gift-scene">
+      <div class="gift-face gift-front"></div>
+      <div class="gift-face gift-back"></div>
+      <div class="gift-face gift-left"></div>
+      <div class="gift-face gift-right"></div>
+      <div class="gift-face gift-bottom"></div>
+      <div class="gift-face gift-top">
+        <span class="bow">🎀</span>
       </div>
     </div>
   </div>
+  <p id="gift-hint">Tap to open your gift</p>
 </div>
 
-<!-- ══════════════════════════════════════════════
-     STEP 3 – GIFT UNWRAP (receiver view)
-════════════════════════════════════════════════ -->
-<div id="screen-gift" class="screen hidden">
-  <div class="gift-scene">
+<!-- ── Main app (revealed after gift) ── -->
+<div class="app">
 
-    <!-- Wrapped gift -->
-    <div id="gift-wrap" class="gift-wrap-container">
-      <div class="gift-box">
-        <div class="gift-lid">
-          <div class="lid-ribbon-h"></div>
-          <div class="lid-ribbon-v"></div>
-          <div class="bow-left"></div>
-          <div class="bow-right"></div>
-        </div>
-        <div class="gift-body">
-          <div class="body-ribbon-h"></div>
-          <div class="body-ribbon-v"></div>
-          <div class="gift-tag">
-            <div class="gift-tag-text">🎂 A special birthday surprise just for you!</div>
-          </div>
-        </div>
+  <!-- LEFT: Creator panel -->
+  <aside class="panel" id="creator-panel">
+    <h1>🎂 Birthday Cake</h1>
+
+    <label class="field-label">Name on cake
+      <input type="text" id="input-name" value="Your Name" maxlength="20" />
+    </label>
+
+    <div class="field-label">Candle style
+      <div class="toggle-group">
+        <button class="toggle-btn active" id="btn-mode-stick">🕯 Stick</button>
+        <button class="toggle-btn"        id="btn-mode-number">🔢 Number</button>
       </div>
-      <button id="btn-unwrap" class="btn-primary btn-large btn-glow">
-        🎁 Unwrap your gift!
-      </button>
     </div>
 
-    <!-- Cake reveal (hidden until unwrap) -->
-    <div id="cake-reveal" class="cake-reveal hidden">
-      <div class="receiver-banner">
-        <span>🎂 Someone baked this cake just for you!</span>
+    <div id="stick-controls">
+      <label class="field-label">Number of candles
+        <div class="candle-row">
+          <input type="range" id="input-candles" min="1" max="12" value="5" />
+          <span id="candle-count-display">5</span>
+        </div>
+      </label>
+    </div>
+
+    <div id="number-controls" class="hidden">
+      <label class="field-label">Age / number
+        <input type="text" id="input-age" value="21" maxlength="3" placeholder="e.g. 21" />
+        <span class="field-hint">Up to 3 digits</span>
+      </label>
+    </div>
+
+    <label class="field-label">Cake color
+      <input type="color" id="input-cake-color" value="#F472B6" />
+    </label>
+
+    <label class="field-label">Frosting color
+      <input type="color" id="input-frosting-color" value="#FBCFE8" />
+    </label>
+
+    <label class="field-label">Wish message
+      <textarea id="input-wish" rows="3" maxlength="120">Happy Birthday! 🎂</textarea>
+    </label>
+
+    <hr class="divider" />
+
+    <button id="btn-blow" class="btn-primary" disabled>🎤 Ready to Blow?</button>
+    <p id="mic-status" class="status-text"></p>
+
+    <hr class="divider" />
+
+    <button id="btn-share" class="btn-share">🔗 Copy Share Link</button>
+    <p id="share-status" class="status-text"></p>
+  </aside>
+
+  <!-- RIGHT: 3D canvas -->
+  <div id="scene-wrapper" class="hidden">
+    <div class="canvas-area">
+
+      <div id="view-only-banner" class="view-only-banner hidden">
+        <span>🎂 Someone made this cake for you!</span>
         <a href="./index.html" class="make-own-link">Make your own →</a>
       </div>
 
       <div id="cake-canvas"></div>
 
-      <div id="blow-controls" class="blow-controls hidden">
-        <p class="blow-hint">🎤 Blow into your microphone to extinguish the candles!</p>
-        <button id="btn-blow" class="btn-primary btn-large">🎤 Ready to Blow?</button>
-        <p id="mic-status" class="status-text"></p>
-      </div>
+      <div id="view-controls" class="view-blow-area hidden"></div>
 
-      <!-- Message card (shown after all candles blown) -->
       <div id="wish-card" class="wish-card hidden">
-        <div class="wish-card-inner">
-          <div class="wish-card-header">💌</div>
-          <p id="wish-text"></p>
-        </div>
+        <p id="wish-text"></p>
       </div>
-    </div>
 
+    </div>
   </div>
+
 </div>
 
+<!-- OrbitControls shim — attaches to THREE global -->
+<script>
+// Minimal OrbitControls implementation that works with THREE r128 global
+// Based on Three.js OrbitControls source, simplified
+(function() {
+  'use strict';
+  const THREE = window.THREE;
+  if (!THREE) return;
+
+  THREE.OrbitControls = function(object, domElement) {
+    this.object = object;
+    this.domElement = domElement;
+    this.enabled = true;
+    this.target = new THREE.Vector3();
+    this.minDistance = 0;
+    this.maxDistance = Infinity;
+    this.minPolarAngle = 0;
+    this.maxPolarAngle = Math.PI;
+    this.enableDamping = false;
+    this.dampingFactor = 0.05;
+    this.enableZoom = true;
+    this.zoomSpeed = 1.0;
+    this.enableRotate = true;
+    this.rotateSpeed = 1.0;
+    this.enablePan = true;
+
+    const scope = this;
+    const STATE = { NONE: -1, ROTATE: 0, ZOOM: 1, PAN: 2 };
+    let state = STATE.NONE;
+
+    const EPS = 1e-6;
+    const spherical = new THREE.Spherical();
+    const sphericalDelta = new THREE.Spherical();
+    let scale = 1;
+
+    const rotateStart = new THREE.Vector2();
+    const rotateEnd   = new THREE.Vector2();
+    const rotateDelta = new THREE.Vector2();
+
+    const panStart  = new THREE.Vector2();
+    const panEnd    = new THREE.Vector2();
+    const panDelta  = new THREE.Vector2();
+    const panOffset = new THREE.Vector3();
+
+    const offset = new THREE.Vector3();
+    const quat   = new THREE.Quaternion().setFromUnitVectors(object.up, new THREE.Vector3(0,1,0));
+    const quatInverse = quat.clone().invert();
+    const lastPos = new THREE.Vector3();
+
+    function getZoomScale() { return Math.pow(0.95, scope.zoomSpeed); }
+
+    function rotateLeft(angle)  { sphericalDelta.theta -= angle; }
+    function rotateUp(angle)    { sphericalDelta.phi   -= angle; }
+
+    function panLeft(distance, matrix) {
+      const v = new THREE.Vector3().setFromMatrixColumn(matrix, 0);
+      v.multiplyScalar(-distance);
+      panOffset.add(v);
+    }
+    function panUp(distance, matrix) {
+      const v = new THREE.Vector3().setFromMatrixColumn(matrix, 1);
+      v.multiplyScalar(distance);
+      panOffset.add(v);
+    }
+    function pan(deltaX, deltaY) {
+      const el = scope.domElement;
+      const pos = scope.object.position;
+      const targetDist = pos.clone().sub(scope.target).length();
+      const fov = scope.object.fov || 50;
+      let dist = targetDist * Math.tan((fov / 2) * Math.PI / 180);
+      panLeft(2 * deltaX * dist / el.clientHeight, scope.object.matrix);
+      panUp   (2 * deltaY * dist / el.clientHeight, scope.object.matrix);
+    }
+
+    this.update = function() {
+      const position = scope.object.position;
+      offset.copy(position).sub(scope.target);
+      offset.applyQuaternion(quat);
+      spherical.setFromVector3(offset);
+
+      if (scope.enableDamping) {
+        spherical.theta += sphericalDelta.theta * scope.dampingFactor;
+        spherical.phi   += sphericalDelta.phi   * scope.dampingFactor;
+      } else {
+        spherical.theta += sphericalDelta.theta;
+        spherical.phi   += sphericalDelta.phi;
+      }
+
+      spherical.phi = Math.max(scope.minPolarAngle + EPS, Math.min(scope.maxPolarAngle - EPS, spherical.phi));
+      spherical.radius = Math.max(scope.minDistance, Math.min(scope.maxDistance, spherical.radius * scale));
+
+      scope.target.add(panOffset);
+      offset.setFromSpherical(spherical);
+      offset.applyQuaternion(quatInverse);
+      position.copy(scope.target).add(offset);
+      scope.object.lookAt(scope.target);
+
+      if (scope.enableDamping) {
+        sphericalDelta.theta *= (1 - scope.dampingFactor);
+        sphericalDelta.phi   *= (1 - scope.dampingFactor);
+        panOffset.multiplyScalar(1 - scope.dampingFactor);
+      } else {
+        sphericalDelta.set(0, 0, 0);
+        panOffset.set(0, 0, 0);
+      }
+      scale = 1;
+      return lastPos.distanceToSquared(scope.object.position) > EPS;
+    };
+
+    // ── Event handlers ────────────────────────────────────────
+    function onMouseDown(e) {
+      if (!scope.enabled) return;
+      e.preventDefault();
+      if (e.button === 0) { state = STATE.ROTATE; rotateStart.set(e.clientX, e.clientY); }
+      else if (e.button === 2) { state = STATE.PAN; panStart.set(e.clientX, e.clientY); }
+      domElement.ownerDocument.addEventListener('mousemove', onMouseMove);
+      domElement.ownerDocument.addEventListener('mouseup',   onMouseUp);
+    }
+
+    function onMouseMove(e) {
+      if (!scope.enabled) return;
+      if (state === STATE.ROTATE) {
+        rotateEnd.set(e.clientX, e.clientY);
+        rotateDelta.subVectors(rotateEnd, rotateStart).multiplyScalar(scope.rotateSpeed);
+        const el = scope.domElement;
+        rotateLeft(2 * Math.PI * rotateDelta.x / el.clientHeight);
+        rotateUp  (2 * Math.PI * rotateDelta.y / el.clientHeight);
+        rotateStart.copy(rotateEnd);
+        scope.update();
+      } else if (state === STATE.PAN) {
+        panEnd.set(e.clientX, e.clientY);
+        panDelta.subVectors(panEnd, panStart).multiplyScalar(1);
+        pan(panDelta.x, panDelta.y);
+        panStart.copy(panEnd);
+        scope.update();
+      }
+    }
+
+    function onMouseUp() {
+      domElement.ownerDocument.removeEventListener('mousemove', onMouseMove);
+      domElement.ownerDocument.removeEventListener('mouseup',   onMouseUp);
+      state = STATE.NONE;
+    }
+
+    function onWheel(e) {
+      if (!scope.enabled || !scope.enableZoom) return;
+      e.preventDefault();
+      scale *= e.deltaY > 0 ? (1 / getZoomScale()) : getZoomScale();
+      scope.update();
+    }
+
+    // Touch
+    const touches = { ONE: 0, TWO: 1 };
+    let touchState = -1;
+    const touchRotateStart = new THREE.Vector2();
+    const touchRotateEnd   = new THREE.Vector2();
+    let prevPinchDist = 0;
+
+    function onTouchStart(e) {
+      if (!scope.enabled) return;
+      if (e.touches.length === 1) {
+        touchState = touches.ONE;
+        touchRotateStart.set(e.touches[0].pageX, e.touches[0].pageY);
+      } else if (e.touches.length === 2) {
+        touchState = touches.TWO;
+        const dx = e.touches[0].pageX - e.touches[1].pageX;
+        const dy = e.touches[0].pageY - e.touches[1].pageY;
+        prevPinchDist = Math.sqrt(dx*dx + dy*dy);
+      }
+    }
+
+    function onTouchMove(e) {
+      if (!scope.enabled) return;
+      e.preventDefault();
+      if (touchState === touches.ONE) {
+        touchRotateEnd.set(e.touches[0].pageX, e.touches[0].pageY);
+        const delta = new THREE.Vector2().subVectors(touchRotateEnd, touchRotateStart).multiplyScalar(scope.rotateSpeed * 0.5);
+        const el = scope.domElement;
+        rotateLeft(2 * Math.PI * delta.x / el.clientHeight);
+        rotateUp  (2 * Math.PI * delta.y / el.clientHeight);
+        touchRotateStart.copy(touchRotateEnd);
+        scope.update();
+      } else if (touchState === touches.TWO) {
+        const dx = e.touches[0].pageX - e.touches[1].pageX;
+        const dy = e.touches[0].pageY - e.touches[1].pageY;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        scale *= dist / prevPinchDist;
+        prevPinchDist = dist;
+        scope.update();
+      }
+    }
+
+    function onTouchEnd() { touchState = -1; }
+
+    function onContextMenu(e) { if (scope.enabled) e.preventDefault(); }
+
+    domElement.addEventListener('mousedown',   onMouseDown,   { passive: false });
+    domElement.addEventListener('wheel',       onWheel,       { passive: false });
+    domElement.addEventListener('touchstart',  onTouchStart,  { passive: false });
+    domElement.addEventListener('touchmove',   onTouchMove,   { passive: false });
+    domElement.addEventListener('touchend',    onTouchEnd);
+    domElement.addEventListener('contextmenu', onContextMenu);
+
+    this.dispose = function() {
+      domElement.removeEventListener('mousedown',   onMouseDown);
+      domElement.removeEventListener('wheel',       onWheel);
+      domElement.removeEventListener('touchstart',  onTouchStart);
+      domElement.removeEventListener('touchmove',   onTouchMove);
+      domElement.removeEventListener('touchend',    onTouchEnd);
+      domElement.removeEventListener('contextmenu', onContextMenu);
+    };
+
+    this.update();
+  };
+})();
+</script>
+
+<!-- Stars generator -->
+<script>
+(function() {
+  const container = document.getElementById('stars-bg');
+  for (let i = 0; i < 80; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    s.style.cssText = `
+      left: ${Math.random()*100}%;
+      top:  ${Math.random()*100}%;
+      --d: ${2 + Math.random()*4}s;
+      --delay: ${-Math.random()*4}s;
+      width:  ${1 + Math.random()*2}px;
+      height: ${1 + Math.random()*2}px;
+    `;
+    container.appendChild(s);
+  }
+})();
+</script>
+
+<!-- App modules -->
+<script type="module" src="./js/state.js"></script>
+<script type="module" src="./js/confetti.js"></script>
+<script type="module" src="./js/music.js"></script>
+<script type="module" src="./js/audio.js"></script>
+<script type="module" src="./js/scene.js"></script>
+<script type="module" src="./js/gift.js"></script>
+<script type="module" src="./js/share.js"></script>
 <script type="module" src="./js/ui.js"></script>
 </body>
 </html>

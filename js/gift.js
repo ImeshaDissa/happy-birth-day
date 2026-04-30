@@ -1,33 +1,39 @@
-// gift.js – handles the gift-unwrap screen interaction
-import { revealCake } from './scene.js';
-import { playHappyBirthday } from './music.js';
+import { playBirthday } from './music.js';
 
-export function initGiftScreen() {
-  const btnUnwrap  = document.getElementById('btn-unwrap');
-  const giftWrap   = document.getElementById('gift-wrap');
-  const cakeReveal = document.getElementById('cake-reveal');
-  const blowCtrl   = document.getElementById('blow-controls');
-  const giftLid    = document.querySelector('.gift-lid');
+export function initGift(onOpened) {
+  const overlay = document.getElementById('gift-overlay');
+  const box     = document.getElementById('gift-box');
+  const hint    = document.getElementById('gift-hint');
 
-  if (!btnUnwrap) return;
+  // Idle float animation
+  let floatAngle = 0;
+  let floatRaf;
+  function floatBox() {
+    floatAngle += 0.02;
+    const y = Math.sin(floatAngle) * 6;
+    box.style.transform = `translateY(${y}px)`;
+    floatRaf = requestAnimationFrame(floatBox);
+  }
+  floatBox();
 
-  btnUnwrap.addEventListener('click', () => {
-    // 1) Animate lid lifting
-    if (giftLid) giftLid.classList.add('lifting');
+  function openGift() {
+    cancelAnimationFrame(floatRaf);
+    box.style.transform = '';
+    hint.style.opacity  = '0';
+    box.classList.add('opening');
 
-    // 2) After brief delay, swap screens
+    // Play music on user gesture (required by browsers)
+    playBirthday();
+
     setTimeout(() => {
-      giftWrap.classList.add('hidden');
-      cakeReveal.classList.remove('hidden');
-
-      // 3) Start the 3-D cake
-      revealCake();
-      playHappyBirthday();
-
-      // 4) Show the blow controls after the scale-in animation settles
+      overlay.classList.add('fade-out');
       setTimeout(() => {
-        blowCtrl.classList.remove('hidden');
-      }, 1800);
-    }, 600);
-  });
+        overlay.style.display = 'none';
+        onOpened();
+      }, 800);
+    }, 1200);
+  }
+
+  overlay.addEventListener('click',     openGift, { once: true });
+  overlay.addEventListener('touchstart', openGift, { once: true, passive: true });
 }

@@ -1,6 +1,5 @@
-// audio.js – Web Audio API blow detection
 import { state } from './state.js';
-import { blowOutNext } from './candles.js';
+import { blowOutNext } from './scene.js';
 
 let audioCtx  = null;
 let analyser  = null;
@@ -8,10 +7,9 @@ let dataArray = null;
 let stream    = null;
 let animFrame = null;
 
-// ── Tuning ───────────────────────────────────
-const BLOW_THRESHOLD = 26;   // avg low-freq amplitude (0–255)
-const LOW_FREQ_MAX   = 600;  // Hz — blowing is low-frequency noise
-const COOLDOWN_MS    = 500;  // min ms between candle blow-outs
+const BLOW_THRESHOLD = 28;
+const LOW_FREQ_MAX   = 600;
+const COOLDOWN_MS    = 550;
 let lastBlow = 0;
 
 export async function startListening() {
@@ -28,11 +26,14 @@ export async function startListening() {
     dataArray = new Uint8Array(analyser.frequencyBinCount);
     state.isListening = true;
 
-    _detectBlow();
+    _setStatus('🎤 Listening… blow at your screen!');
+    document.getElementById('btn-blow')?.classList.add('listening');
+
+    _detect();
     return true;
   } catch (err) {
     console.error('Mic error:', err);
-    state.isListening = false;
+    _setStatus('❌ Mic access denied.');
     return false;
   }
 }
@@ -43,15 +44,14 @@ export function stopListening() {
   if (audioCtx)  audioCtx.close();
   audioCtx = analyser = stream = animFrame = null;
   state.isListening = false;
+  document.getElementById('btn-blow')?.classList.remove('listening');
+  _setStatus('');
 }
 
-function _detectBlow() {
-  animFrame = requestAnimationFrame(_detectBlow);
-  if (!analyser) return;
-
+function _detect() {
+  animFrame = requestAnimationFrame(_detect);
   analyser.getByteFrequencyData(dataArray);
 
-  // Sample only low-frequency bins (characteristic of blowing air)
   const binHz  = audioCtx.sampleRate / analyser.fftSize;
   const maxBin = Math.max(1, Math.floor(LOW_FREQ_MAX / binHz));
   let sum = 0;
@@ -63,19 +63,16 @@ function _detectBlow() {
     if (now - lastBlow > COOLDOWN_MS) {
       lastBlow = now;
       blowOutNext();
-
       if (state.allBlownOut) {
         stopListening();
-        // Update the blow button UI
-        const btn    = document.getElementById('btn-blow');
-        const status = document.getElementById('mic-status');
-        if (btn) {
-          btn.textContent = '🎉 All blown out!';
-          btn.disabled    = true;
-          btn.classList.remove('listening');
-        }
-        if (status) status.textContent = '🎊 Make a wish!';
+        const btn = document.getElementById('btn-blow');
+        if (btn) { btn.textContent = '🎉 All blown out!'; btn.disabled = true; }
       }
     }
   }
+}
+
+function _setStatus(msg) {
+  const el = document.getElementById('mic-status');
+  if (el) el.textContent = msg;
 }

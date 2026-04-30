@@ -1,57 +1,88 @@
-// music.js – synthesised Happy Birthday melody via Web Audio API
+let audioCtx = null;
+let playing   = false;
+let stopFlag  = false;
 
-const NOTE_FREQUENCIES = {
-  G4: 392.0,  A4: 440.0,  B4: 493.88,
-  C5: 523.25, D5: 587.33, E5: 659.25,
-  F5: 698.46, G5: 783.99,
+// Happy Birthday note frequencies (Hz)
+const NOTES = {
+  C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23,
+  G4: 392.00, A4: 440.00, B4: 493.88,
+  C5: 523.25, D5: 587.33, E5: 659.25, F5: 698.46,
+  G5: 783.99, A5: 880.00,
 };
 
-// Happy Birthday to You – full tune
-const HAPPY_BIRTHDAY = [
-  ['G4', 0.28], ['G4', 0.28], ['A4', 0.56], ['G4', 0.56], ['C5', 0.56], ['B4', 1.10],
-  ['G4', 0.28], ['G4', 0.28], ['A4', 0.56], ['G4', 0.56], ['D5', 0.56], ['C5', 1.10],
-  ['G4', 0.28], ['G4', 0.28], ['G5', 0.56], ['E5', 0.56], ['C5', 0.56], ['B4', 0.56], ['A4', 1.10],
-  ['F5', 0.28], ['F5', 0.28], ['E5', 0.56], ['C5', 0.56], ['D5', 0.56], ['C5', 1.20],
+// Happy Birthday to You — [note, duration_beats]
+const MELODY = [
+  ['G4',0.75],['G4',0.25],['A4',1],  ['G4',1],  ['C5',1],  ['B4',2],
+  ['G4',0.75],['G4',0.25],['A4',1],  ['G4',1],  ['D5',1],  ['C5',2],
+  ['G4',0.75],['G4',0.25],['G5',1],  ['E5',1],  ['C5',1],  ['B4',1],['A4',2],
+  ['F5',0.75],['F5',0.25],['E5',1],  ['C5',1],  ['D5',1],  ['C5',2],
 ];
 
-let audioCtx = null;
+const BPM       = 100;
+const BEAT_SEC  = 60 / BPM;
 
-export function playHappyBirthday() {
-  if (!window.AudioContext && !window.webkitAudioContext) return;
+function _ensureCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
 
-  // Resume or create context (needed for browsers that require user gesture)
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  }
-  if (audioCtx.state === 'suspended') {
-    audioCtx.resume();
-  }
-
+function _playNote(freq, startTime, duration, vol = 0.18) {
+  const osc  = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
-  gain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+  osc.connect(gain);
   gain.connect(audioCtx.destination);
 
-  // Use two oscillators for a richer tone (triangle + sine)
-  ['triangle', 'sine'].forEach((type, layerIdx) => {
-    const osc = audioCtx.createOscillator();
-    osc.type  = type;
-    osc.connect(gain);
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(freq, startTime);
 
-    const startTime = audioCtx.currentTime + 0.05;
-    let time = startTime;
-    const vol = layerIdx === 0 ? 0.16 : 0.07;
+  // Soft attack / release envelope
+  gain.gain.setValueAtTime(0, startTime);
+  gain.gain.linearRampToValueAtTime(vol, startTime + 0.04);
+  gain.gain.setValueAtTime(vol, startTime + duration - 0.06);
+  gain.gain.linearRampToValueAtTime(0, startTime + duration);
 
-    HAPPY_BIRTHDAY.forEach(([note, duration]) => {
-      const freq = NOTE_FREQUENCIES[note] || 440;
-      // Detune second layer slightly for chorus effect
-      osc.frequency.setValueAtTime(freq * (layerIdx === 1 ? 1.005 : 1), time);
-      gain.gain.setValueAtTime(vol, time);
-      gain.gain.exponentialRampToValueAtTime(0.001, time + duration * 0.88);
-      time += duration;
-    });
+  osc.start(startTime);
+  osc.stop(startTime + duration + 0.01);
+}
 
-    osc.start(startTime);
-    osc.stop(time + 0.1);
-    osc.onended = () => { try { gain.disconnect(); } catch (_) {} };
-  });
+export async function playBirthday() {
+  if (playing) return;
+  _ensureCtx();
+  playing  = true;
+  stopFlag = false;
+
+  let t = audioCtx.currentTime + 0.1;
+
+  for (const [note, beats] of MELODY) {
+    if (stopFlag) break;
+    const freq = NOTES[note];
+    const dur  = beats * BEAT_SEC * 0.88; // slight staccato
+    _playNote(freq, t, dur);
+    t += beats * BEAT_SEC;
+  }
+
+  // Wait until melody finishes, then loop
+  const totalDur = MELODY.reduce((s, [, b]) => s + b, 0) * BEAT_SEC * 1000;
+  await new Promise(r => setTimeout(r, totalDur + 200));
+
+  playing = false;
+  if (!stopFlag) playBirthday(); // loop
+}
+
+export function stopMusic() {
+  stopFlag = true;
+  playing  = false;
+  if (audioCtx) {
+    audioCtx.close();
+    audioCtx = null;
+  }
+}
+
+export function fadeOutMusic() {
+  stopFlag = true;
+  playing  = false;
+  // Gentle close after current note finishes
+  setTimeout(() => {
+    if (audioCtx) { audioCtx.close(); audioCtx = null; }
+  }, 600);
 }
